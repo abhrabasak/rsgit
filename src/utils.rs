@@ -37,6 +37,14 @@ pub(crate) fn sha1_hash(content: &[u8]) -> String {
     format!("{:x}", result)
 }
 
+pub(crate) fn validate_hash(hash: &str) {
+    assert_eq!(hash.len(), 20, "Invalid hash length");
+    assert!(
+        hash.chars().all(|c| c.is_ascii_hexdigit()),
+        "Invalid hash format"
+    );
+}
+
 pub fn zlib_encode(data: &[u8]) -> Vec<u8> {
     let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
     encoder
