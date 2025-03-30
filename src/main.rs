@@ -1,11 +1,11 @@
-use std::fs;
-
 use clap::{Parser, Subcommand};
 
 mod errors;
 mod object;
 mod utils;
 use object::{GitObject, ObjectType};
+mod cmd;
+use cmd::init::init_exec;
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -34,18 +34,10 @@ enum Command {
 fn main() {
     let args = Cli::parse();
     match &args.command {
-        Command::Init => init(),
+        Command::Init => init_exec(),
         Command::CatFile { pretty_print, hash } => cat_file(pretty_print, hash),
         Command::HashObject { write, file } => hash_object(write, file),
     }
-}
-
-fn init() {
-    fs::create_dir(".git").unwrap();
-    fs::create_dir(".git/objects").unwrap();
-    fs::create_dir(".git/refs").unwrap();
-    fs::write(".git/HEAD", "ref: refs/heads/main\n").unwrap();
-    println!("Initialized git directory");
 }
 
 fn cat_file(pretty_print: &bool, hash: &str) {
