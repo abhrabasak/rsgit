@@ -2,8 +2,9 @@ use std::fs;
 
 use clap::{Parser, Subcommand};
 
+mod object;
 mod utils;
-use utils::ObjectType;
+use object::ObjectType;
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -21,6 +22,12 @@ enum Command {
         /// The hash of the object to display
         hash: String,
     },
+    HashObject {
+        #[clap(short = 'w')]
+        write: bool,
+        /// The file to hash
+        file: String,
+    },
 }
 
 fn main() {
@@ -28,6 +35,7 @@ fn main() {
     match &args.command {
         Command::Init => init(),
         Command::CatFile { pretty_print, hash } => cat_file(pretty_print, hash),
+        Command::HashObject { write, file } => hash_object(write, file),
     }
 }
 
@@ -50,5 +58,17 @@ fn cat_file(pretty_print: &bool, hash: &str) {
             ObjectType::Blob => print!("{}", content),
             _ => println!("Other object type: {:?}", object_type),
         }
+    }
+}
+
+fn hash_object(write: &bool, file: &str) {
+    let file_content = utils::file_read(file);
+
+    if *write {
+        let hash = utils::object_write(ObjectType::Blob, &file_content);
+        print!("{}", hash);
+    } else {
+        let hash = utils::sha1_hash(&file_content);
+        print!("{}", hash);
     }
 }
