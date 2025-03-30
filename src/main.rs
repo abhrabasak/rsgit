@@ -1,11 +1,10 @@
 use clap::{Parser, Subcommand};
 
+mod cmd;
 mod errors;
 mod object;
 mod utils;
-use object::{GitObject, ObjectType};
-mod cmd;
-use cmd::init::init_exec;
+use cmd::{cat_file::cat_file_exec, hash_object::hash_object_exec, init::init_exec};
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -35,20 +34,7 @@ fn main() {
     let args = Cli::parse();
     match &args.command {
         Command::Init => init_exec(),
-        Command::CatFile { pretty_print, hash } => cat_file(pretty_print, hash),
-        Command::HashObject { write, file } => hash_object(write, file),
+        Command::CatFile { pretty_print, hash } => cat_file_exec(pretty_print, hash),
+        Command::HashObject { write, file } => hash_object_exec(write, file),
     }
-}
-
-fn cat_file(pretty_print: &bool, hash: &str) {
-    let go = GitObject::load(hash).unwrap();
-    if *pretty_print {
-        go.cat();
-    }
-}
-
-fn hash_object(write: &bool, file: &str) {
-    let go = GitObject::create(ObjectType::Blob, file);
-    let hash = if *write { go.store() } else { go.hash() };
-    print!("{}", hash);
 }
