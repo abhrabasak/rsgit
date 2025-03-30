@@ -2,9 +2,10 @@ use std::fs;
 
 use clap::{Parser, Subcommand};
 
+mod errors;
 mod object;
 mod utils;
-use object::ObjectType;
+use object::{GitObject, ObjectType};
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -48,27 +49,14 @@ fn init() {
 }
 
 fn cat_file(pretty_print: &bool, hash: &str) {
-    let object_path = utils::object_hash_to_path(hash);
-    let decoded_content = utils::zlib_decode_file_to_string(&object_path);
-
-    let (object_type, content) = utils::object_parse(&decoded_content);
-
+    let go = GitObject::load(hash).unwrap();
     if *pretty_print {
-        match object_type {
-            ObjectType::Blob => print!("{}", content),
-            _ => println!("Other object type: {:?}", object_type),
-        }
+        go.cat();
     }
 }
 
 fn hash_object(write: &bool, file: &str) {
-    let file_content = utils::file_read(file);
-
-    if *write {
-        let hash = utils::object_write(ObjectType::Blob, &file_content);
-        print!("{}", hash);
-    } else {
-        let hash = utils::sha1_hash(&file_content);
-        print!("{}", hash);
-    }
+    let go = GitObject::create(ObjectType::Blob, file);
+    let hash = if *write { go.store() } else { go.hash() };
+    print!("{}", hash);
 }
